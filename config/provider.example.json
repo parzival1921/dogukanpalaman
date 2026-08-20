@@ -1,0 +1,80 @@
+{
+  "_aciklama": [
+    "Genel JSON API eşleme şeması. PROVIDER=http ve PROVIDER_CONFIG=<bu dosya> ile kullanılır.",
+    "Alan eşlemesi üç biçimden biri olabilir:",
+    "  \"a.b.c\"                                        -> nokta yolu",
+    "  {\"path\": \"kilo\", \"type\": \"float\", \"default\": 0} -> tip dönüşümü",
+    "  {\"const\": \"kum\"}                                -> sabit değer",
+    "type: str | int | float | bool | int_list | datetime | map_number_float",
+    "path/params içinde {date:%d/%m/%Y}, {race_id}, {race_no}, {track} yer tutucuları kullanılabilir."
+  ],
+  "name": "ornek-api",
+  "base_url": "https://api.ornek.com",
+  "timeout_seconds": 15,
+  "headers": {
+    "Accept": "application/json",
+    "X-API-Key": "BURAYA_ANAHTARINIZ"
+  },
+
+  "race_cards": {
+    "path": "/v1/racecards",
+    "method": "GET",
+    "params": { "date": "{date:%Y-%m-%d}" },
+    "items": "data.races",
+    "map": {
+      "id": "race_id",
+      "track": "course",
+      "race_no": { "path": "race_number", "type": "int" },
+      "post_time": { "path": "off_time", "type": "datetime", "format": "%Y-%m-%d %H:%M", "tz": "Europe/Istanbul" },
+      "distance": { "path": "distance_m", "type": "int" },
+      "surface": "going_type",
+      "race_class": "race_class",
+      "purse": { "path": "prize", "type": "float" }
+    },
+    "runners": {
+      "items": "runners",
+      "map": {
+        "number": { "path": "number", "type": "int" },
+        "horse": "horse_name",
+        "jockey": "jockey",
+        "trainer": "trainer",
+        "age": { "path": "age", "type": "int" },
+        "weight": { "path": "weight_kg", "type": "float" },
+        "handicap": { "path": "rating", "type": "float" },
+        "form": { "path": "last_runs", "type": "int_list" },
+        "draw": { "path": "draw", "type": "int" },
+        "days_since_run": { "path": "days_since_last_run", "type": "int" },
+        "best_distance": { "path": "best_distance_m", "type": "int" },
+        "surface_pref": "preferred_going",
+        "jockey_win_rate": { "path": "jockey_strike_rate", "type": "float" },
+        "agf": { "path": "public_pct", "type": "float" },
+        "odds": { "path": "odds_decimal", "type": "float" },
+        "scratched": { "path": "non_runner", "type": "bool", "default": false }
+      }
+    }
+  },
+
+  "odds": {
+    "path": "/v1/racecards/{race_id}/odds",
+    "items": "data",
+    "map": {
+      "number": { "path": "number", "type": "int" },
+      "odds": { "path": "win", "type": "float" }
+    }
+  },
+
+  "results": {
+    "path": "/v1/racecards/{race_id}/result",
+    "root": "data",
+    "items": "positions",
+    "runner_map": {
+      "number": { "path": "number", "type": "int" },
+      "position": { "path": "position", "type": "int" }
+    },
+    "map": {
+      "win_dividends": { "path": "dividends.win", "type": "map_number_float" },
+      "place_dividends": { "path": "dividends.place", "type": "map_number_float" },
+      "cancelled": { "path": "abandoned", "type": "bool", "default": false }
+    }
+  }
+}

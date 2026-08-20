@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>At Yarışı Tahmin Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <h1>At Yarışı Tahmin Dashboard</h1>
+      <span class="chip" id="provider-chip">kaynak: —</span>
+      <span class="chip" id="clock">—</span>
+      <span class="spacer"></span>
+      <span class="chip" id="updated">güncelleniyor…</span>
+      <button class="action" id="sync-btn">Şimdi senkronize et</button>
+    </header>
+
+    <section class="tiles" id="tiles"></section>
+
+    <section class="card">
+      <h2>Kasa gelişimi</h2>
+      <p class="hint">Her kilitli bahis ve ödeme sonrası bakiye (TL).</p>
+      <svg id="curve" role="img" aria-label="Kasa bakiyesinin zaman içindeki değişimi"></svg>
+      <div class="scroll-x" id="curve-table" hidden></div>
+    </section>
+
+    <section class="card">
+      <h2>Yaklaşan koşular</h2>
+      <p class="hint">
+        Tahmin, koşunun başlamasına <strong id="lock-min">5</strong> dk kala kilitlenir;
+        kilitten sonra oran ve seçim değişmez.
+      </p>
+      <div class="races" id="upcoming"></div>
+    </section>
+
+    <section class="card">
+      <h2>Sonuçlanan tahminler</h2>
+      <p class="hint">Kilitli tahminin gerçek sonuca göre kazanç/kayıp dökümü.</p>
+      <div class="scroll-x" id="results"></div>
+    </section>
+
+    <footer class="note">
+      Bu araç yalnızca analiz ve simülasyon amaçlıdır; gerçek para ile bahis tavsiyesi değildir.
+      Kâr/zarar rakamları kilitlenen tahminlerin varsayımsal kasa üzerinden hesabıdır.
+    </footer>
+  </div>
+
+  <div class="tooltip" id="tooltip" role="status" aria-live="polite"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

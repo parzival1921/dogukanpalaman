@@ -1,0 +1,93 @@
+{
+  "_uyari": [
+    "TJK'nın herkese açık, dokümante edilmiş bir REST API'si yoktur; aşağıdaki uç noktalar",
+    "ajax.tjk.org üzerinde gözlemlenen isimlere göre yazılmış TASLAKTIR ve BU HALİYLE ÇALIŞMAZ.",
+    "Bu dosyayı kullanmadan önce:",
+    "  1) tarayıcıda tjk.org'da ilgili sayfayı açın, DevTools > Network sekmesinden",
+    "     gerçek isteği ve JSON yanıtını kopyalayın,",
+    "  2) 'path', 'params', 'items' ve 'map' alanlarını o yanıta göre düzeltin,",
+    "  3) `python -m tools.check_provider config/provider.tjk.json` ile doğrulayın.",
+    "Alternatif: aynı şema ile herhangi bir sağlayıcıya (RapidAPI vb.) bağlanabilirsiniz;",
+    "bkz. config/provider.example.json"
+  ],
+  "name": "tjk",
+  "base_url": "https://ajax.tjk.org",
+  "timeout_seconds": 20,
+  "headers": {
+    "Accept": "application/json, text/javascript, */*; q=0.01",
+    "X-Requested-With": "XMLHttpRequest",
+    "Referer": "https://www.tjk.org/TR/YarisSever/Info/Sayfa/GunlukYarisProgrami",
+    "User-Agent": "Mozilla/5.0 (compatible; atyarisi-dashboard/1.0)"
+  },
+
+  "race_cards": {
+    "path": "/section/GunlukYarisProgrami",
+    "method": "GET",
+    "params": {
+      "QueryParameter_Tarih": "{date:%d/%m/%Y}",
+      "QueryParameter_SehirId": "0"
+    },
+    "items": "kosular",
+    "map": {
+      "id": "kosuKodu",
+      "track": "hipodromAdi",
+      "race_no": { "path": "kosuNo", "type": "int" },
+      "post_time": {
+        "path": "kosuSaati",
+        "type": "datetime",
+        "format": "%d/%m/%Y %H:%M",
+        "tz": "Europe/Istanbul"
+      },
+      "distance": { "path": "mesafe", "type": "int" },
+      "surface": "pist",
+      "race_class": "kosuCinsi",
+      "purse": { "path": "ikramiye", "type": "float" }
+    },
+    "runners": {
+      "items": "atlar",
+      "map": {
+        "number": { "path": "atNo", "type": "int" },
+        "horse": "atAdi",
+        "jockey": "jokeyAdi",
+        "trainer": "antrenorAdi",
+        "age": { "path": "yas", "type": "int" },
+        "weight": { "path": "kilo", "type": "float" },
+        "handicap": { "path": "handikapPuani", "type": "float" },
+        "form": { "path": "son6", "type": "int_list" },
+        "draw": { "path": "startYeri", "type": "int" },
+        "days_since_run": { "path": "sonKosuGun", "type": "int" },
+        "best_distance": { "path": "enIyiDereceMesafe", "type": "int" },
+        "surface_pref": "tercihPist",
+        "agf": { "path": "agf1", "type": "float" },
+        "odds": { "path": "ganyan", "type": "float" },
+        "scratched": { "path": "kosmaz", "type": "bool", "default": false }
+      }
+    }
+  },
+
+  "odds": {
+    "path": "/section/AnlikGanyan",
+    "params": { "QueryParameter_KosuKodu": "{race_id}" },
+    "items": "ganyanlar",
+    "map": {
+      "number": { "path": "atNo", "type": "int" },
+      "odds": { "path": "ganyan", "type": "float" }
+    }
+  },
+
+  "results": {
+    "path": "/section/GunlukYarisSonuclari",
+    "params": { "QueryParameter_KosuKodu": "{race_id}" },
+    "root": "sonuc",
+    "items": "atlar",
+    "runner_map": {
+      "number": { "path": "atNo", "type": "int" },
+      "position": { "path": "derece", "type": "int" }
+    },
+    "map": {
+      "win_dividends": { "path": "ganyanOdemeleri", "type": "map_number_float" },
+      "place_dividends": { "path": "plaseOdemeleri", "type": "map_number_float" },
+      "cancelled": { "path": "iptal", "type": "bool", "default": false }
+    }
+  }
+}
