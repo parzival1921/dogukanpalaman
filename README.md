@@ -31,7 +31,7 @@ SYNC_INTERVAL_SECONDS=5 uvicorn app.main:app --port 8000
 Testler ve geriye dönük test:
 
 ```bash
-pytest -q                        # 34 test: model, bahis seçimi, kilit, sonuçlandırma, API
+pytest -q                        # 40 test: model, bahis seçimi, kilit, sonuçlandırma, API
 python -m tools.backtest 250 6   # 1500 koşuluk simülasyon: ROI, isabet, kalibrasyon
 ```
 
@@ -65,17 +65,32 @@ Veri katmanı eklentili (pluggable): kod yazmadan, bir **eşleme (mapping) dosya
 herhangi bir JSON API'ye bağlanırsınız.
 
 ```bash
-# 1) Tarayıcıda DevTools > Network ile gerçek isteği ve JSON yanıtını yakalayın
-# 2) config/provider.tjk.json içindeki path / params / items / map alanlarını düzeltin
-# 3) Eşlemeyi canlı API'ye karşı doğrulayın:
-python -m tools.check_provider config/provider.tjk.json 2026-08-21
+# 1) Tarayıcıda DevTools > Network ile isteği yakalayın, JSON yanıtını dosyaya kaydedin
+#    (Response > sağ tık > Save / Copy)
 
-# 4) Uygulamayı o sağlayıcıyla çalıştırın:
-PROVIDER=http PROVIDER_CONFIG=config/provider.tjk.json uvicorn app.main:app --port 8000
+# 2) Eşlemeyi ham JSON'dan otomatik çıkarın — Türkçe alan adlarını tanır
+python -m tools.infer_mapping program.json > mapping.json
+python -m tools.infer_mapping ganyan.json --section odds
+python -m tools.infer_mapping sonuc.json  --section results
+
+# 3) Çıkan eşlemeyi config/provider.<ad>.json içine koyun; "path", "params" ve
+#    "base_url" alanlarını gerçek istekten doldurun (bunlar tahmin edilemez)
+
+# 4) Ağa çıkmadan doğrulayın:
+python -m tools.check_provider config/provider.<ad>.json --sample program.json \
+    --sample-odds ganyan.json --sample-results sonuc.json
+
+# 5) Canlıya alın:
+PROVIDER=http PROVIDER_CONFIG=config/provider.<ad>.json uvicorn app.main:app --port 8000
 ```
 
-`tools.check_provider` her adımda kaç kayıt çözümlendiğini ve hangi alanların boş
-geldiğini yazar; eşleme hatasını saniyeler içinde gösterir.
+`infer_mapping` JSON içindeki kayıt listelerini bulur, anahtar adlarını Türkçe/İngilizce
+eş anlamlı sözlüğüyle eşler ve örnek değerlerden tipi çıkarır — ondalık virgül
+(`"58,5"` → `58.5`), form dizisi (`"1-3-2-1-4"` → `[1,3,2,1,4]`) ve tarih biçimi
+(`"21/08/2026 14:30"`) dahil. Tahmin kesin değildir; çıktıyı gözden geçirin.
+
+`check_provider` her adımda kaç kayıt çözümlendiğini ve hangi alanın boş geldiğini
+yazar — `--sample` ile kaydedilmiş dosyadan, argümansız ise canlı API'den.
 Şema ve tüm alan seçenekleri: `config/provider.example.json`.
 
 Kendi sağlayıcınızı Python ile yazmak isterseniz `app/providers/base.py` içindeki üç
@@ -202,8 +217,9 @@ app/
   providers/        base · demo (simülatör) · http_json (eşlemeli adaptör)
   static/           dashboard (HTML + CSS + vanilla JS)
 config/             sağlayıcı eşleme dosyaları
-tools/              check_provider (eşleme doğrulama) · backtest (strateji testi)
-tests/              34 test
+tools/              infer_mapping (eşleme çıkarımı) · check_provider (doğrulama)
+                    backtest (strateji testi)
+tests/              40 test
 ```
 
 ## Sorumluluk reddi

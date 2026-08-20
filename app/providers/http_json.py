@@ -164,6 +164,14 @@ class HttpJsonProvider:
         if not section:
             return []
         payload = await self._request(section, day=day)
+        return self.parse_race_cards(payload)
+
+    def parse_race_cards(self, payload: Any) -> list[RaceCard]:
+        """Ham JSON'u koşu kartlarına çevirir (ağ erişimi gerekmez).
+
+        Eşlemeyi kaydedilmiş bir örnek yanıtla test edebilmek için ayrı tutulur.
+        """
+        section = self.config.get("race_cards") or {}
         items = _dig(payload, section.get("items", "")) or []
         mapping = section.get("map", {})
         runner_section = section.get("runners", {})
@@ -226,7 +234,11 @@ class HttpJsonProvider:
         if not section:
             return {}
         payload = await self._request(section, race=race)
+        return self.parse_odds(payload)
 
+    def parse_odds(self, payload: Any) -> dict[int, float]:
+        """Ham JSON'u {at_no: oran} sözlüğüne çevirir."""
+        section = self.config.get("odds") or {}
         direct = section.get("map_field")
         if direct:
             value = _dig(payload, direct)
@@ -249,6 +261,11 @@ class HttpJsonProvider:
         if not section:
             return None
         payload = await self._request(section, race=race)
+        return self.parse_result(payload, race)
+
+    def parse_result(self, payload: Any, race: RaceCard) -> RaceResult | None:
+        """Ham JSON'u koşu sonucuna çevirir."""
+        section = self.config.get("results") or {}
         mapping = section.get("map", {})
 
         root = _dig(payload, section.get("root", "")) if section.get("root") else payload
