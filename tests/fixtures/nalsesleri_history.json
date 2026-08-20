@@ -1,0 +1,25 @@
+{
+  "status": "success",
+  "data": [
+    {"race_date":"2024-12-01","hippodrome_id":123,"race_number":1,"pist_type":"Çim","distance":1600,
+     "group_name":"A Grubu","horse_number":5,"lane":3,"horse_name":"Lightning Bolt","jockey":"John Doe",
+     "apprentice":0,"weight":55.5,"non_runner":0,"odds":3.5,"AGF1":50.0,"AGF2":45.5,"handicap":80.0,
+     "result":1,"time":"1:34.56","prize":10000,"currency":"TRY"},
+    {"race_date":"2024-11-10","hippodrome_id":123,"race_number":4,"pist_type":"Çim","distance":1600,
+     "group_name":"A Grubu","horse_number":2,"lane":1,"horse_name":"Lightning Bolt","jockey":"John Doe",
+     "apprentice":0,"weight":54.0,"non_runner":0,"odds":6.2,"AGF1":18.0,"AGF2":20.0,"handicap":77.0,
+     "result":3,"time":"1:35.80","prize":4000,"currency":"TRY"},
+    {"race_date":"2024-10-05","hippodrome_id":77,"race_number":6,"pist_type":"Kum","distance":1200,
+     "group_name":"B Grubu","horse_number":7,"lane":6,"horse_name":"Lightning Bolt","jockey":"Ali Veli",
+     "apprentice":1,"weight":53.0,"non_runner":0,"odds":11.0,"AGF1":6.0,"AGF2":7.0,"handicap":74.0,
+     "result":8,"time":"1:12.90","prize":0,"currency":"TRY"},
+    {"race_date":"2024-09-20","hippodrome_id":123,"race_number":2,"pist_type":"Çim","distance":1800,
+     "group_name":"A Grubu","horse_number":4,"lane":4,"horse_name":"Lightning Bolt","jockey":"John Doe",
+     "apprentice":0,"weight":55.0,"non_runner":1,"odds":0,"AGF1":0,"AGF2":0,"handicap":76.0,
+     "result":0,"time":"","prize":0,"currency":"TRY"},
+    {"race_date":"2024-08-15","hippodrome_id":123,"race_number":5,"pist_type":"Çim","distance":1600,
+     "group_name":"A Grubu","horse_number":1,"lane":2,"horse_name":"Lightning Bolt","jockey":"John Doe",
+     "apprentice":0,"weight":56.0,"non_runner":0,"odds":4.1,"AGF1":25.0,"AGF2":22.0,"handicap":78.0,
+     "result":2,"time":"1:35.10","prize":6000,"currency":"TRY"}
+  ]
+}
