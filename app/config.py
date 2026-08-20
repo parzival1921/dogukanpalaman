@@ -41,6 +41,10 @@ class Settings:
     database_path: str
     provider: str
     provider_config: str
+    history_enabled: bool
+    history_api_url: str
+    history_cache_dir: str
+    history_ttl_hours: float
     timezone: str
 
     # --- zamanlama ---
@@ -82,6 +86,10 @@ class Settings:
             database_path=_env_str("DATABASE_PATH", str(BASE_DIR / "data" / "atyarisi.db")),
             provider=_env_str("PROVIDER", "demo").lower(),
             provider_config=_env_str("PROVIDER_CONFIG", str(BASE_DIR / "config" / "provider.tjk.json")),
+            history_enabled=_env_bool("HISTORY_ENABLED", False),
+            history_api_url=_env_str("HISTORY_API_URL", "https://nalsesleri.com/api"),
+            history_cache_dir=_env_str("HISTORY_CACHE_DIR", str(BASE_DIR / "data" / "history")),
+            history_ttl_hours=_env_float("HISTORY_TTL_HOURS", 24.0),
             timezone=_env_str("TIMEZONE", "Europe/Istanbul"),
             sync_interval_seconds=_env_int("SYNC_INTERVAL_SECONDS", 20),
             lock_minutes=_env_float("LOCK_MINUTES", 5.0),

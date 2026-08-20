@@ -31,27 +31,30 @@ SYNC_INTERVAL_SECONDS=5 uvicorn app.main:app --port 8000
 Testler ve geriye dönük test:
 
 ```bash
-pytest -q                        # 40 test: model, bahis seçimi, kilit, sonuçlandırma, API
+pytest -q                        # 58 test: model, bahis seçimi, kilit, sonuçlandırma, API
 python -m tools.backtest 250 6   # 1500 koşuluk simülasyon: ROI, isabet, kalibrasyon
 ```
 
 `tools.backtest` canlı akışın aynısını hızlandırılmış çalıştırır ve **Brier skoru**
 ile modeli piyasayla karşılaştırır (düşük olan daha iyi tahmin ediyor demektir).
-Varsayılan ayarlarla demo simülatöründe tipik çıktı:
+Sabit çıpa kullanır, yani aynı komut aynı sonucu verir. Demo simülatöründe:
 
 ```
-bahis   : 905  (koşu başına 0.60)
-isabet  : %17.3
-ROI     : %+41.1
-Brier model/piyasa : 0.0954 / 0.0965
+bahis              : 1,051  (koşu başına 0.70)
+isabet             : %15.6
+ROI                : %+16.3
+Brier model/piyasa : 0.0954 / 0.0962  (model önde)
 ```
 
-> Bu ROI **simülasyona aittir, gerçek bir getiri vaadi değildir.** Demo pazarı
-> kasten yenilebilir kurgulanmıştır: simülasyondaki "halk" son forma ve jokeye
-> fazla, mesafe/pist uyumu ile dinlenme süresine ise neredeyse hiç ağırlık verir
+Beş farklı tohumda ROI %+16 ile %+51 arasında değişiyor; Brier skoru her tohumda
+modelin lehine. Yani avantaj gerçek, ama **ROI'nin tek bir ölçümü şansa çok açık**.
+
+> Bu rakamlar **simülasyona aittir, getiri vaadi değildir.** Demo pazarı kasten
+> yenilebilir kurgulanmıştır: simülasyondaki "halk" son forma ve jokeye fazla,
+> mesafe/pist uyumu ile dinlenme süresine ise neredeyse hiç ağırlık verir
 > (`DemoProvider.PUBLIC_WEIGHTS`), gerçek sonuç ise bunların hepsine bağlıdır.
 > Gerçek pari-mutuel pazarda komisyon %15-20'dir ve bu tür bir avantaj çok daha
-> zor bulunur — bu yüzden aynı testi kendi veri kaynağınızla tekrar çalıştırın.
+> zor bulunur. Kendi verinizle ölçmek için aşağıdaki "gerçek veriyle backtest"e bakın.
 
 ## Gerçek veriyi bağlamak
 
@@ -92,6 +95,51 @@ eş anlamlı sözlüğüyle eşler ve örnek değerlerden tipi çıkarır — on
 `check_provider` her adımda kaç kayıt çözümlendiğini ve hangi alanın boş geldiğini
 yazar — `--sample` ile kaydedilmiş dosyadan, argümansız ise canlı API'den.
 Şema ve tüm alan seçenekleri: `config/provider.example.json`.
+
+### At geçmişi: nalsesleri.com
+
+`https://nalsesleri.com/api?horse_name=<at adı>` bir atın **geçmiş koşularını**
+döndürür (tarih, hipodrom, koşu no, mesafe, pist, kilo, handikap, jokey, ganyan,
+AGF, derece, süre). Uygulama bunu iki yerde kullanır — ama önce sınırını bilin:
+
+> Bu uç **günün programını, start saatini ve anlık ganyanı vermez.** Kilitleme
+> (T-5dk) ve sonuçlandırma döngüsü bunlarsız çalışamaz; o üçü ayrı bir kaynaktan
+> gelmek zorunda. Geçmiş verisi tahminin *kalitesini* artırır, döngüyü çalıştırmaz.
+
+**1) Koşu kartını zenginleştirme.** Program kaynağınız sadece "kim koşuyor + ganyan"
+veriyorsa, eksik form alanları at geçmişinden doldurulur:
+
+```bash
+PROVIDER=http PROVIDER_CONFIG=config/provider.tjk.json \
+HISTORY_ENABLED=true uvicorn app.main:app --port 8000
+```
+
+Doldurulanlar: son koşu dereceleri (form), son koşudan bu yana geçen gün, en iyi
+derece yaptığı mesafe, pist tercihi, handikap puanı ve jokey isabet oranı. Yalnızca
+**boş gelen** alanlar doldurulur; program kaynağının verdiği değer ezilmez. Her at
+için tek istek atılır ve yanıt diske önbelleklenir (`HISTORY_CACHE_DIR`,
+varsayılan TTL 24 saat), eşzamanlı istek 4 ile sınırlıdır.
+
+**2) Gerçek veriyle backtest.** Aynı `(tarih, hipodrom_id, koşu_no)` anahtarını
+paylaşan satırlar birleştirilerek geçmiş koşular yeniden kurulur; model gerçek
+ganyan ve gerçek dereceler üzerinde ölçülür:
+
+```bash
+printf 'RÜZGAR KIZI\nBOZKIR ASLANI\n...' > atlar.txt
+python -m tools.build_dataset atlar.txt dataset.json
+python -m tools.backtest --dataset dataset.json
+```
+
+İki uyarı:
+
+* **Kadro tamlığı.** API yalnızca sorguladığınız atın satırlarını döndürür. Bir
+  koşuyu tam kurabilmek için o koşudaki atların hepsini sorgulamış olmanız gerekir;
+  eksik kadrolu koşular elenir. `build_dataset` kadro doluluk dağılımını yazar.
+* **Geleceğe bakma yok.** Her atın formu/dinlenmesi ve her jokeyin isabet oranı,
+  yalnızca o koşudan **önceki** satırlardan hesaplanır. Aksi halde backtest o gün
+  bilinemeyecek bilgiyi kullanır ve sonuç şişer (`tests/test_nalsesleri.py` bunu
+  doğrular). Piyasa olasılığı ise koşu sonu ganyanından gelir; canlı akışta kilit
+  anındaki oran biraz farklı olur.
 
 Kendi sağlayıcınızı Python ile yazmak isterseniz `app/providers/base.py` içindeki üç
 metodu (`fetch_race_cards`, `fetch_odds`, `fetch_result`) doldurup
@@ -202,6 +250,9 @@ Kasa hareketleri `ledger` tablosunda tutulur; dashboard'daki kasa eğrisi bu tab
 | `MIN_ODDS` / `MAX_ODDS` | `1.40` / `30` | Oynanabilir oran aralığı |
 | `SOFTMAX_TEMPERATURE` | `1.1` | Olasılık dağılımının keskinliği (küçük = sivri) |
 | `TIMEZONE` | `Europe/Istanbul` | Arayüzdeki saat dilimi |
+| `HISTORY_ENABLED` | `false` | Koşu kartını at geçmişiyle zenginleştir |
+| `HISTORY_API_URL` | `https://nalsesleri.com/api` | Geçmiş verisi ucu |
+| `HISTORY_CACHE_DIR` / `HISTORY_TTL_HOURS` | `data/history` / `24` | Geçmiş önbelleği |
 | `DEMO_MARKET_BIAS` / `DEMO_OVERROUND` | `0.22` / `1.18` | Demo pazarının yanılgısı ve komisyonu |
 
 ## Proje yapısı
@@ -215,11 +266,11 @@ app/
   models.py         RaceCard / Runner / RaceResult / BetProposal
   engine/           features · predictor · betting · settle
   providers/        base · demo (simülatör) · http_json (eşlemeli adaptör)
+                    nalsesleri (at geçmişi) · enriched (özellik tamamlama)
   static/           dashboard (HTML + CSS + vanilla JS)
 config/             sağlayıcı eşleme dosyaları
-tools/              infer_mapping (eşleme çıkarımı) · check_provider (doğrulama)
-                    backtest (strateji testi)
-tests/              40 test
+tools/              infer_mapping · check_provider · build_dataset · backtest
+tests/              58 test
 ```
 
 ## Sorumluluk reddi
