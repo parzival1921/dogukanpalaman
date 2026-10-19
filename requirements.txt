@@ -1,0 +1,6 @@
+httpx>=0.27,<1.0
+pyyaml>=6.0
+
+# Required only for LIVE trading (order signing). Paper/dry-run mode and all
+# the scan commands work without it.
+py-clob-client>=0.19 ; extra == "live"

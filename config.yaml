@@ -1,0 +1,46 @@
+# ---- risk engine: the hard gate every order passes through ----
+risk:
+  bankroll_usdc: 1000.0        # total capital the bot is allowed to deploy
+  max_position_pct: 0.05       # <=5% of bankroll in any single market
+  max_total_exposure_pct: 0.60 # <=60% of bankroll deployed at once
+  kelly_fraction: 0.25         # quarter-Kelly — conservative, survives bad streaks
+  max_daily_loss_pct: 0.10     # halt all trading after a 10% daily drawdown
+  min_order_usdc: 5.0
+  max_order_usdc: 250.0
+
+# ---- smart-money mirroring (primary earner) ----
+smart_money:
+  enabled: true
+  auto_discover: true          # rank wallets by realised on-chain PnL
+  wallets: []                  # or pin specific wallets to always follow
+  min_wallet_pnl: 5000.0
+  min_wallet_winrate: 0.58
+  lookback_days: 90
+  copy_ratio: 0.10             # take 10% of the leader's trade size
+  max_follow_price: 0.90       # don't chase near-certain outcomes
+  max_lag_seconds: 120         # ignore trades we only saw minutes later
+
+# ---- arbitrage / structural mispricing (risk-free legs) ----
+arbitrage:
+  enabled: true
+  min_edge: 0.015              # need >=1.5% locked edge to act
+  max_legs: 8
+  include_neg_risk: true
+  taker_fee: 0.0
+
+# ---- market making (off by default; needs monitoring) ----
+market_making:
+  enabled: false
+  markets: []                  # condition_ids to quote
+  target_spread: 0.02
+  quote_size_usdc: 20.0
+  max_inventory_usdc: 100.0
+  skew_strength: 0.5
+  min_market_volume_24h: 10000.0
+
+# ---- engine ----
+engine:
+  poll_interval_seconds: 5.0
+  dry_run: true                # PAPER by default — set false (or pass --live) to go real
+  log_level: INFO
+  state_path: .polybot_state.json
